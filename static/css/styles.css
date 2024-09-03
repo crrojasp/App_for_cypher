@@ -1,0 +1,33 @@
+/* Estilos para modo claro */
+body {
+    background-color: #dfe6e9;
+    color: #000;
+}
+
+button, a.btn {
+    background-color: #00b894;
+    color: #fff;
+    font-weight: bold;
+    width: 100%;
+}
+
+button:hover, a.btn:hover {
+    background-color: #009874;
+    color: #fff;
+}
+
+/* Estilos para modo oscuro */
+body.dark-mode {
+    background-color: #2d3436;
+    color: #fff;
+}
+
+body.dark-mode button, body.dark-mode a.btn {
+    background-color: #55efc4;
+    color: #000;
+}
+
+body.dark-mode button:hover, body.dark-mode a.btn:hover {
+    background-color: #00d29d;
+    color: #000;
+}
