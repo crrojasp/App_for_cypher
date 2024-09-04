@@ -1,15 +1,15 @@
 from flask import Flask, render_template, request, redirect, url_for, make_response, jsonify
 import matplotlib.pyplot as plt
-from ecdsa import SigningKey, SECP256k1
 import numpy as np
 import os
 from sympy import Matrix
 
-
+# Inicialización del proyecto usando Flask
 app = Flask(__name__)
 
 # Diccionario de traducciones
 translations = {
+    # Palabra claves basicas usadas en ingles para la interfaz
     'en': {
         'Encrypt': 'Encrypt',
         'Decrypt': 'Decrypt',
@@ -25,6 +25,7 @@ translations = {
         'Insert the text here':'Insert the text here',
         'Project for cryptography':'Project for cryptography'
     },
+    # Palabra claves basicas usadas en español para la interfaz
     'es': {
         'Encrypt': 'Cifrar',
         'Decrypt': 'Descifrar',
@@ -40,6 +41,7 @@ translations = {
         'Insert the text here':'Insertar el texto aquí',
         'Project for cryptography':'Proyecto para criptografía'
     },
+    # Palabra claves basicas usadas en portugues para la interfaz
     'pt': {
         'Encrypt': 'Criptografar',
         'Decrypt': 'Descriptografar',
@@ -58,18 +60,84 @@ translations = {
 }
 
 def translate_text(text, lang):
+    """
+        Traduce un texto al idioma especificado si la traducción está disponible en el diccionario 'translations'.
+
+        Args:
+        text (str): El texto que se desea traducir.
+        lang (str): El código del idioma al que se desea traducir el texto (por ejemplo, 'en' para inglés, 'es' para español).
+
+        Returns:
+        str: La traducción del texto si se encuentra disponible; de lo contrario, devuelve el texto original.
+    """
     if lang in translations and text in translations[lang]:
         return translations[lang][text]
     return text
 
 @app.route('/')
 def index():
+    """
+    Maneja la ruta principal ('/') de la aplicación web.
+
+    Obtiene las preferencias de modo oscuro y de idioma del usuario a través de cookies y
+    renderiza la plantilla 'index.html' con estas preferencias.
+
+    Cookies:
+        - 'dark-mode': Almacena si el modo oscuro está activado ('1') o desactivado ('0').
+        - 'locale': Almacena el idioma preferido del usuario (por ejemplo, 'es' para español).
+
+    Plantilla renderizada:
+        - index.html: La plantilla HTML que se mostrará al usuario.
+
+    Contexto de la plantilla:
+        - dark_mode (bool): Indica si el modo oscuro está activado o desactivado.
+        - translate (function): La función `translate_text` para traducir textos dentro de la plantilla.
+        - lang (str): El idioma seleccionado por el usuario (por defecto 'es').
+
+    Returns:
+        str: El HTML renderizado de la plantilla 'index.html'.
+    """
     dark_mode = request.cookies.get('dark-mode', '0') == '1'
     lang = request.cookies.get('locale', 'es')
     return render_template('index.html', dark_mode=dark_mode, translate=translate_text, lang=lang)
 
 @app.route('/encrypt', methods=['GET', 'POST'])
 def encrypt():
+    """
+    Maneja la ruta '/encrypt' para encriptar mensajes usando diferentes algoritmos.
+
+    Si la solicitud es 'GET', renderiza la página con el formulario de encriptación.
+    Si la solicitud es 'POST', procesa los datos del formulario y ejecuta el algoritmo de encriptación seleccionado.
+
+    Cookies:
+        - 'dark-mode': Almacena si el modo oscuro está activado ('1') o desactivado ('0').
+        - 'locale': Almacena el idioma preferido del usuario (por defecto 'es' para español).
+
+    Métodos de solicitud:
+        - GET: Renderiza la plantilla 'encrypt.html'.
+        - POST: Procesa los datos del formulario y ejecuta el algoritmo de encriptación.
+
+    Formularios de datos (POST):
+        - 'message' (str): El mensaje que se desea encriptar.
+        - 'algorithm' (str): El algoritmo de encriptación seleccionado ('cesar', 'monoalfabetico', 'playfair', 'hill').
+        - 'alphabet' (str): (Opcional) El alfabeto utilizado para el cifrado César.
+        - 'key' (int): (Opcional) La clave de cifrado para el algoritmo César.
+        - 'key_playfair' (str): (Opcional) La clave utilizada para el cifrado Playfair.
+        - 'key_matrix_hill' (str): (Opcional) La clave en forma de matriz para el cifrado Hill.
+
+    Retorno (POST):
+        - JSON: Un diccionario JSON con las siguientes claves:
+            - 'message': El mensaje original enviado.
+            - 'algorithm': El algoritmo utilizado para encriptar el mensaje.
+            - 'result': El resultado del mensaje encriptado o un mensaje de error si el algoritmo no está soportado.
+
+    Renderización (GET):
+        - encrypt.html: La plantilla HTML con la interfaz para ingresar datos de encriptación.
+
+    Returns:
+        - Si la solicitud es GET: El HTML renderizado de la plantilla 'encrypt.html'.
+        - Si la solicitud es POST: Un diccionario JSON con el mensaje original, el algoritmo y el resultado de la encriptación.
+    """
     dark_mode = request.cookies.get('dark-mode', '0') == '1'
     lang = request.cookies.get('locale', 'es')
     
@@ -93,16 +161,46 @@ def encrypt():
             result = encrypt_hill(message, key_matrix)
         else:
             result = 'Algoritmo no soportado'
-
-        # Aquí podrías decidir qué hacer con el resultado, por ejemplo:
-        # renderizar otra plantilla o redirigir a otra página.
-        # Por ahora, devolveremos un JSON como ejemplo.
         return jsonify({'message': message, 'algorithm': algorithm, 'result': result})
-    
     return render_template('encrypt.html', dark_mode=dark_mode, translate=translate_text, lang=lang)
 
 @app.route('/decrypt', methods=['GET', 'POST'])
 def decrypt():
+    """
+    Maneja la ruta '/decrypt' para desencriptar mensajes usando diferentes algoritmos.
+
+    Si la solicitud es 'GET', renderiza la página con el formulario de desencriptación.
+    Si la solicitud es 'POST', procesa los datos del formulario y ejecuta el algoritmo de desencriptación seleccionado.
+
+    Cookies:
+        - 'dark-mode': Almacena si el modo oscuro está activado ('1') o desactivado ('0').
+        - 'locale': Almacena el idioma preferido del usuario (por defecto 'es' para español).
+
+    Métodos de solicitud:
+        - GET: Renderiza la plantilla 'decrypt.html'.
+        - POST: Procesa los datos del formulario y ejecuta el algoritmo de desencriptación.
+
+    Formularios de datos (POST):
+        - 'encrypted_message' (str): El mensaje que se desea desencriptar.
+        - 'algorithm' (str): El algoritmo de desencriptación seleccionado ('cesar', 'monoalfabetico', 'playfair', 'hill').
+        - 'alphabet' (str): (Opcional) El alfabeto utilizado para el descifrado César.
+        - 'key' (int): (Cesar) La clave de descifrado para el algoritmo César.
+        - 'key_playfair' (str): (PlayFair) La clave utilizada para el descifrado Playfair.
+        - 'key_matrix_hill' (str): (Hill) La clave en forma de matriz para el descifrado Hill.
+
+    Retorno (POST):
+        - JSON: Un diccionario JSON con las siguientes claves:
+            - 'encrypted_message': El mensaje encriptado enviado.
+            - 'algorithm': El algoritmo utilizado para desencriptar el mensaje.
+            - 'result': El resultado del mensaje desencriptado o un mensaje de error si el algoritmo no está soportado.
+
+    Renderización (GET):
+        - decrypt.html: La plantilla HTML con la interfaz para ingresar datos de desencriptación.
+
+    Returns:
+        - Si la solicitud es GET: El HTML renderizado de la plantilla 'decrypt.html'.
+        - Si la solicitud es POST: Un diccionario JSON con el mensaje encriptado, el algoritmo y el resultado de la desencriptación.
+    """
     dark_mode = request.cookies.get('dark-mode', '0') == '1'
     lang = request.cookies.get('locale', 'es')
     
@@ -133,6 +231,30 @@ def decrypt():
 
 @app.route('/options')
 def options():
+    """
+    Maneja la ruta '/options' para mostrar la página de configuración de la aplicación.
+
+    Esta función recupera las preferencias de usuario almacenadas en cookies, como el modo oscuro, 
+    el idioma y el nivel de volumen, y las pasa a la plantilla 'options.html' para su visualización 
+    y ajuste por parte del usuario.
+
+    Cookies:
+        - 'dark-mode': Almacena si el modo oscuro está activado ('1') o desactivado ('0').
+        - 'locale': Almacena el idioma preferido del usuario (por defecto 'es' para español).
+        - 'volume': Almacena el nivel de volumen para la música de fondo (valor entre 0.0 y 1.0).
+
+    Renderización:
+        - options.html: La plantilla HTML que contiene las opciones de configuración de la aplicación.
+
+    Contexto pasado a la plantilla:
+        - dark_mode (bool): Indica si el modo oscuro está activado o no.
+        - lang (str): El idioma seleccionado para la interfaz de la aplicación.
+        - translate (func): La función de traducción para adaptar el contenido a diferentes idiomas.
+        - volume (float): El nivel de volumen de la música de fondo.
+
+    Returns:
+        - El HTML renderizado de la plantilla 'options.html' con las preferencias del usuario.
+    """
     dark_mode = request.cookies.get('dark-mode', '0') == '1'
     lang = request.cookies.get('locale', 'es')
     volume = request.cookies.get('volume', '0') 
@@ -140,61 +262,191 @@ def options():
 
 @app.route('/about')
 def about():
+    """
+    Maneja la ruta '/about' para mostrar la página de información de la aplicación.
+
+    Esta función recupera las preferencias de usuario almacenadas en cookies, como el modo oscuro 
+    y el idioma, y las pasa a la plantilla 'about.html' para personalizar la presentación de la 
+    página de información.
+
+    Cookies:
+        - 'dark-mode': Almacena si el modo oscuro está activado ('1') o desactivado ('0').
+        - 'locale': Almacena el idioma preferido del usuario (por defecto 'es' para español).
+
+    Renderización:
+        - about.html: La plantilla HTML que contiene la información sobre la aplicación.
+
+    Contexto pasado a la plantilla:
+        - dark_mode (bool): Indica si el modo oscuro está activado o no.
+        - lang (str): El idioma seleccionado para la interfaz de la aplicación.
+        - translate (func): La función de traducción para adaptar el contenido a diferentes idiomas.
+
+    Returns:
+        - El HTML renderizado de la plantilla 'about.html' con las preferencias del usuario.
+    """
     dark_mode = request.cookies.get('dark-mode', '0') == '1'
     lang = request.cookies.get('locale', 'es')
     return render_template('about.html', dark_mode=dark_mode, translate=translate_text, lang=lang)
 
 @app.route('/set_dark_mode/<int:status>')
 def set_dark_mode(status):
+    """
+    Actualiza el estado del modo oscuro en las preferencias del usuario mediante cookies.
+
+    Esta función recibe un parámetro `status` que determina si el modo oscuro debe ser 
+    activado (`1`) o desactivado (`0`). El estado es almacenado en la cookie 'dark-mode'. 
+    Luego, se devuelve una respuesta en formato JSON confirmando que la operación fue 
+    exitosa.
+
+    Args:
+        status (int): Estado del modo oscuro, donde `1` lo activa y `0` lo desactiva.
+
+    Cookies:
+        - 'dark-mode': Se establece a '1' si el modo oscuro está activado o a '0' si está desactivado.
+
+    Returns:
+        - Una respuesta HTTP con un JSON que indica el éxito de la operación.
+    """
     resp = make_response({'status': 'success'})
     resp.set_cookie('dark-mode', str(status))
     return resp
 
 @app.route('/set_language/<language>')
 def set_language(language):
+    """
+    Actualiza la preferencia de idioma del usuario mediante cookies y redirige a la página anterior.
+
+    Esta función recibe un parámetro `language` que determina el idioma seleccionado por el usuario.
+    El idioma se almacena en la cookie 'locale'. Luego, el usuario es redirigido a la página desde 
+    la cual hizo la solicitud, manteniendo así su flujo de navegación.
+
+    Args:
+        language (str): Código del idioma seleccionado (por ejemplo, 'es' para español, 'en' para inglés).
+
+    Cookies:
+        - 'locale': Se establece con el código del idioma seleccionado.
+
+    Returns:
+        - Una redirección HTTP a la página anterior del usuario.
+    """
     resp = redirect(request.referrer)
     resp.set_cookie('locale', language)
     return resp
 
 @app.route('/set_volume/<float:volume>')
 def set_volume(volume):
+    """
+    Actualiza la preferencia de volumen del usuario mediante cookies.
+
+    Esta función recibe un parámetro `volume` que determina el nivel de volumen seleccionado 
+    por el usuario. El nivel de volumen se almacena en la cookie 'volume'. 
+
+    Args:
+        volume (float): Nivel de volumen seleccionado, expresado como un número flotante.
+
+    Cookies:
+        - 'volume': Se establece con el valor del nivel de volumen seleccionado.
+
+    Returns:
+        - Una respuesta JSON que indica el éxito de la operación ('status': 'success').
+    """
     resp = make_response({'status': 'success'})
     resp.set_cookie('volume', str(volume))
     return resp
 
+""" Funciones /// Functions /// Funções /// Funciones /// Functions /// Funções """
 
-# Funciones de cifrado y descifrado (dummy functions para ejemplificar)
+# Función para la encriptación utilizando el método Caesar
 def encrypt_cesar(message, alphabet, key):
+    """
+    Cifra un mensaje utilizando el cifrado César.
+
+    Este algoritmo desplaza cada letra del mensaje original un número fijo de posiciones, 
+    determinado por la clave `key`, dentro del alfabeto proporcionado. Si un carácter no está en el 
+    alfabeto, se deja sin cambios.
+
+    Args:
+        message (str): El mensaje a cifrar.
+        alphabet (str): El alfabeto utilizado para el cifrado. Debe ser una cadena de caracteres 
+                        donde cada carácter es único.
+        key (int): El número de posiciones a desplazar cada carácter en el alfabeto.
+
+    Returns:
+        str: El mensaje cifrado donde cada carácter ha sido desplazado según la clave `key`.
+
+    Ejemplo:
+        Si el mensaje es "HELLO", el alfabeto es "ABCDEFGHIJKLMNOPQRSTUVWXYZ", y la clave es 3,
+        el mensaje cifrado será "KHOOR".
+    """
     encrypted_message = ''
     for char in message:
         if char in alphabet:
-            # Find the current position of the character
+            # Find the current position of the character # Encuentra la posición actual del carácter
             original_index = alphabet.index(char)
-            # Calculate the new position with the key
+            # Calculate the new position with the key # Calcula la nueva posición con la clave
             new_index = (original_index + key) % len(alphabet)
-            # Append the encrypted character to the result
+            # Append the encrypted character to the result # Añade el carácter cifrado al resultado
             encrypted_message += alphabet[new_index]
         else:
             # If the character is not in the alphabet, keep it unchanged
+            # Si el carácter no está en el alfabeto, se mantiene sin cambios
             encrypted_message += char
     return encrypted_message
 
+# Función para la desencriptación utilizando el método Caesar
 def decrypt_cesar(message, alphabet, key):
+    """
+    Descifra un mensaje cifrado con el cifrado César.
+
+    Este algoritmo desplaza cada letra del mensaje cifrado en la dirección opuesta al cifrado, 
+    utilizando el número fijo de posiciones determinado por la clave `key`, dentro del alfabeto proporcionado. 
+    Si un carácter no está en el alfabeto, se deja sin cambios.
+
+    Args:
+        message (str): El mensaje cifrado que se desea descifrar.
+        alphabet (str): El alfabeto utilizado para el cifrado. Debe ser una cadena de caracteres 
+                        donde cada carácter es único.
+        key (int): El número de posiciones por el cual se desplazó cada carácter en el alfabeto durante el cifrado.
+
+    Returns:
+        str: El mensaje descifrado donde cada carácter ha sido desplazado hacia atrás según la clave `key`.
+
+    Ejemplo:
+        Si el mensaje cifrado es "KHOOR", el alfabeto es "ABCDEFGHIJKLMNOPQRSTUVWXYZ", y la clave es 3,
+        el mensaje descifrado será "HELLO".
+    """
     decrypted_message = ''
     for char in message:
         if char in alphabet:
-            # Find the current position of the character
+            # Find the current position of the character # Encuentra la posición actual del carácter
             encrypted_index = alphabet.index(char)
-            # Calculate the original position with the key
+            # Calculate the original position with the key # Calcula la posición original con la clave, desplazando hacia atrás
             original_index = (encrypted_index - key) % len(alphabet)
-            # Append the decrypted character to the result
+            # Append the decrypted character to the result # Añade el carácter descifrado al resultado
             decrypted_message += alphabet[original_index]
         else:
-            # If the character is not in the alphabet, keep it unchanged
+            # If the character is not in the alphabet, keep it unchanged # Si el carácter no está en el alfabeto, se mantiene sin cambios
             decrypted_message += char
     return decrypted_message
 
+# Función para la encriptación utilizando el método monoalfabetico (con la variable de porcentaje de frecuencia en el lenguaje español)
 def encrypt_monoalfabetico(message):
+    """
+    Cifra un mensaje usando un cifrado monoalfabético basado en un mapa de sustitución fijo.
+
+    En este cifrado, cada carácter del mensaje se reemplaza por otro carácter según un mapa de sustitución predefinido. 
+    El mapa se basa en la frecuencia típica de caracteres en español, y el cifrado es sensible al caso de las letras. 
+    Si un carácter no está en el mapa de sustitución, se mantiene sin cambios.
+
+    Args:
+        message (str): El mensaje que se desea cifrar.
+
+    Returns:
+        str: El mensaje cifrado, donde cada carácter ha sido reemplazado según el mapa de sustitución.
+
+    Ejemplo:
+        Si el mensaje es "Hola Mundo", el mensaje cifrado será "Spor Lrmdp".
+    """
     # Mapa de sustitución fijo basado en la frecuencia típica de caracteres en español
     substitution_map = {
         'a': 'o', 'b': 'p', 'c': 'q', 'd': 'r', 'e': 's', 'f': 't', 'g': 'u', 'h': 'v',
@@ -207,15 +459,19 @@ def encrypt_monoalfabetico(message):
     for char in message:
         if char.lower() in substitution_map:
             encrypted_char = substitution_map[char.lower()]
+            # Mantener el caso original del carácter
             if char.isupper():
                 encrypted_message += encrypted_char.upper()
             else:
                 encrypted_message += encrypted_char
         else:
+            # Si el carácter no está en el mapa, se mantiene sin cambios
             encrypted_message += char
-
     return encrypted_message
 
+"""AQUÍ DEBO CONTINUAR AQUÍ DEBO CONTINUAR AQUÍ DEBO CONTINUAR AQUÍ DEBO CONTINUAR AQUÍ DEBO CONTINUAR"""
+
+# Función para la desencriptación utilizando el método monoalfabetico (con la variable de porcentaje de frecuencia en el lenguaje español)
 def decrypt_monoalfabetico(encrypted_message):
     # Mapa inverso de sustitución
     reverse_substitution_map = {v: k for k, v in {
