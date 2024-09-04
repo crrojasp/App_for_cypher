@@ -1,41 +1,61 @@
 {% extends "base.html" %}
 {% block content %}
+
+<!-- Contenedor principal que alinea verticalmente los elementos en el centro -->
 <div class="d-flex flex-column align-items-center">
+    <!-- Sección para el interruptor de modo oscuro -->
     <div class="form-group w-50">
         <label for="theme-switch">{{ translate('Dark Mode:', lang) }}</label>
+        <!-- Checkbox para activar o desactivar el modo oscuro -->
         <input type="checkbox" id="theme-switch" class="form-control" {% if dark_mode %}checked{% endif %}>
     </div>
+
+    <!-- Sección para el control del volumen -->
     <div class="form-group w-50">
         <label for="volume">{{ translate('Volume:', lang) }}</label>
+        <!-- Control deslizante para ajustar el volumen de la música de fondo -->
         <input type="range" id="volume" min="0" max="100" class="form-control" value="{{ (volume * 100) | round }}">
     </div>
+
+    <!-- Sección para seleccionar el idioma -->
     <div class="form-group w-50">
         <label for="language">{{ translate('Language:', lang) }}</label>
+        <!-- Selector desplegable para cambiar el idioma -->
         <select id="language" class="form-control" onchange="setLanguage(this.value)">
             <option value="en" {% if lang == 'en' %}selected{% endif %}>English</option>
             <option value="es" {% if lang == 'es' %}selected{% endif %}>Español</option>
             <option value="pt" {% if lang == 'pt' %}selected{% endif %}>Português</option>
         </select>
     </div>
-    <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg m-2 font-weight-bold">{{ translate('Back', lang) }}</a>
+
+    <!-- Botón para volver a la página principal -->
+    <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg m-2 font-weight-bold">
+        {{ translate('Back', lang) }} <!-- Traducción del texto del botón dependiendo del idioma -->
+    </a>
 </div>
+
 <script>
+
     document.addEventListener("DOMContentLoaded", function() {
+        // Ajusta el volumen de la música de fondo según el valor inicial
         var music = document.getElementById("background-music");
         var volume = {{ volume }};
         music.volume = volume;
 
+        // Actualiza el volumen cuando el usuario mueve el control deslizante
         document.getElementById("volume").addEventListener("input", function() {
             var volume = this.value / 100;
             music.volume = volume;
-            fetch(`/set_volume/${volume}`);
+            fetch(`/set_volume/${volume}`); // Envía el nuevo volumen al servidor
         });
 
+        // Recupera y aplica la configuración del modo oscuro desde el almacenamiento local
         var darkMode = localStorage.getItem("dark-mode") === "true";
         if (darkMode) {
             document.body.classList.add("dark-mode");
         }
 
+        // Cambia el modo oscuro cuando el usuario marca o desmarca el checkbox
         document.getElementById("theme-switch").addEventListener("change", function() {
             if (this.checked) {
                 document.body.classList.add("dark-mode");
@@ -47,9 +67,10 @@
         });
     });
 
+    // Cambia el idioma de la aplicación y recarga la página
     function setLanguage(language) {
         fetch(`/set_language/${language}`).then(() => {
-            location.reload();
+            location.reload(); // Recarga la página para aplicar el nuevo idioma
         });
     }
 </script>

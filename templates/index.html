@@ -1,9 +1,22 @@
 {% extends "base.html" %}
 {% block content %}
+
+<!-- Contenedor principal que alinea verticalmente todos los botones en el centro de la página -->
 <div class="d-flex flex-column align-items-center">
-    <a href="{{ url_for('encrypt') }}" class="btn btn-primary btn-lg m-2 font-weight-bold">{{ translate('Encrypt', lang) }}</a>
-    <a href="{{ url_for('decrypt') }}" class="btn btn-primary btn-lg m-2 font-weight-bold">{{ translate('Decrypt', lang) }}</a>
-    <a href="{{ url_for('options') }}" class="btn btn-primary btn-lg m-2 font-weight-bold">{{ translate('Options', lang) }}</a>
-    <a href="{{ url_for('about') }}" class="btn btn-primary btn-lg m-2 font-weight-bold">{{ translate('About Me', lang) }}</a>
+
+    <!-- Botón para encriptar un mensaje -->
+    <a href="{{ url_for('encrypt') }}" class="btn btn-primary btn-lg m-2 font-weight-bold">
+        {{ translate('Encrypt', lang) }} <!-- Traducción del texto del botón dependiendo del idioma -->
+    </a>
+
+    <a href="{{ url_for('decrypt') }}" class="btn btn-primary btn-lg m-2 font-weight-bold">
+        {{ translate('Decrypt', lang) }} <!-- Traducción del texto del botón dependiendo del idioma -->
+    </a>
+    <a href="{{ url_for('options') }}" class="btn btn-primary btn-lg m-2 font-weight-bold">
+        {{ translate('Options', lang) }} <!-- Traducción del texto del botón dependiendo del idioma -->
+    </a>
+    <a href="{{ url_for('about') }}" class="btn btn-primary btn-lg m-2 font-weight-bold">
+        {{ translate('About Me', lang) }} <!-- Traducción del texto del botón dependiendo del idioma -->
+    </a>
 </div>
 {% endblock %}

@@ -1,9 +1,17 @@
+{% comment %} 
+
+    'base.html' es una plantilla base (por eso su nombre) para una aplicación web que utiliza Flask y Bootstrap. 
+    Logra proporcionar la estructura básica necesaria con lo necesario. Incluye referencias a archivos CSS y 
+    JavaScript, así como elementos dinámicos como música de fondo y temas oscuros.
+
+{% endcomment %}
+
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Decryption</title>
+    <title>Decryption</title>   {% comment %} Se define el titulo de la aplicación y es lo que saldrá en el nombre de la pestaña de la página web {% endcomment %}
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>

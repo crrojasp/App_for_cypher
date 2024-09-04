@@ -1,12 +1,21 @@
 {% extends "base.html" %}
 {% block content %}
+
+<!-- Contenedor principal de la página -->
 <div class="d-flex flex-column align-items-center">
+    <!-- Título principal de la página -->
     <h1>Puedes encriptar tu mensaje</h1>
+
+    <!-- Formulario para encriptar el mensaje -->
     <form id="encrypt-form" method="POST" action="{{ url_for('encrypt') }}">
+
+        <!-- Campo para ingresar el mensaje a encriptar -->
         <div class="form-group">
             <label for="message">Mensaje:</label>
             <input type="text" class="form-control" id="message" name="message" required>
         </div>
+
+        <!-- Campo para seleccionar el algoritmo de cifrado -->
         <div class="form-group">
             <label for="algorithm">Algoritmo:</label>
             <select class="form-control" id="algorithm" name="algorithm" required>
@@ -17,23 +26,32 @@
                 <option value="hill">Cifrado Hill</option>
             </select>
         </div>
+
+        <!-- Opciones específicas para el cifrado César (inicialmente ocultas) -->
         <div class="form-group d-none" id="cesar-options">
             <label for="alphabet">Alfabeto:</label>
             <input type="text" class="form-control" id="alphabet" name="alphabet">
             <label for="key">Clave:</label>
             <input type="number" class="form-control" id="key" name="key">
         </div>
+
+        <!-- Opciones específicas para el cifrado Playfair (inicialmente ocultas) -->
         <div class="form-group d-none" id="playfair-options">
             <label for="key_playfair">Clave Playfair:</label>
             <input type="text" class="form-control" id="key_playfair" name="key_playfair">
         </div>
+
+        <!-- Opciones específicas para el cifrado Hill (inicialmente ocultas) -->
         <div class="form-group d-none" id="hill-options">
             <label for="key_matrix_hill">Matriz de Clave Hill:</label>
             <input type="text" class="form-control" id="key_matrix_hill" name="key_matrix_hill" placeholder="Ejemplo (2x2): 3,3,2,5" required>
-
         </div>
+
+        <!-- Botón para enviar el formulario y encriptar el mensaje -->
         <button type="submit" class="btn btn-primary" id="encrypt-button">Encriptar</button>
     </form>
+
+    <!-- Tabla para mostrar los resultados de la encriptación -->
     <table class="table mt-4">
         <thead>
             <tr>
@@ -49,10 +67,11 @@
 </div>
 
 <script>
+// Maneja la visibilidad y los campos requeridos del formulario según el algoritmo seleccionado
 document.getElementById('algorithm').addEventListener('change', function () {
     var algorithm = this.value;
     
-    // Ocultar y desactivar todos los campos
+    // Ocultar y desactivar todos los campos específicos de los algoritmos
     var options = ['cesar-options', 'playfair-options', 'hill-options'];
     options.forEach(function(id) {
         document.getElementById(id).classList.add('d-none');
@@ -74,6 +93,7 @@ document.getElementById('algorithm').addEventListener('change', function () {
     }
 });
 
+// Maneja el envío del formulario usando JavaScript para evitar el envío tradicional
 document.getElementById('encrypt-form').addEventListener('submit', function(event) {
     event.preventDefault(); // Evita que el formulario se envíe de forma tradicional
 
@@ -86,17 +106,17 @@ document.getElementById('encrypt-form').addEventListener('submit', function(even
     .then(data => {
         var resultTableBody = document.getElementById('result-table-body');
 
-        // Añadir nueva fila con el resultado
+        // Añadir una nueva fila con el resultado de la encriptación
         var newRow = document.createElement('tr');
         newRow.innerHTML = `<td>${data.message}</td><td>${data.algorithm}</td><td>${data.result}</td>`;
         resultTableBody.appendChild(newRow);
 
-        // Resetear formulario
+        // Resetear el formulario y los campos de selección
         document.getElementById('encrypt-form').reset();
         document.getElementById('algorithm').value = '';
-        document.getElementById('algorithm').dispatchEvent(new Event('change')); // Para ocultar los campos de nuevo
+        document.getElementById('algorithm').dispatchEvent(new Event('change')); // Ocultar los campos específicos de nuevo
     })
-    .catch(error => console.error('Error:', error));
+    .catch(error => console.error('Error:', error)); // Manejo de errores en caso de fallo en la petición
 });
 </script>
 {% endblock %}
