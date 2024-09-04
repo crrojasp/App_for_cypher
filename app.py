@@ -410,10 +410,6 @@ def decrypt_cesar(message, alphabet, key):
 
     Returns:
         str: El mensaje descifrado donde cada carácter ha sido desplazado hacia atrás según la clave `key`.
-
-    Ejemplo:
-        Si el mensaje cifrado es "KHOOR", el alfabeto es "ABCDEFGHIJKLMNOPQRSTUVWXYZ", y la clave es 3,
-        el mensaje descifrado será "HELLO".
     """
     decrypted_message = ''
     for char in message:
@@ -443,9 +439,6 @@ def encrypt_monoalfabetico(message):
 
     Returns:
         str: El mensaje cifrado, donde cada carácter ha sido reemplazado según el mapa de sustitución.
-
-    Ejemplo:
-        Si el mensaje es "Hola Mundo", el mensaje cifrado será "Spor Lrmdp".
     """
     # Mapa de sustitución fijo basado en la frecuencia típica de caracteres en español
     substitution_map = {
@@ -469,10 +462,20 @@ def encrypt_monoalfabetico(message):
             encrypted_message += char
     return encrypted_message
 
-"""AQUÍ DEBO CONTINUAR AQUÍ DEBO CONTINUAR AQUÍ DEBO CONTINUAR AQUÍ DEBO CONTINUAR AQUÍ DEBO CONTINUAR"""
-
 # Función para la desencriptación utilizando el método monoalfabetico (con la variable de porcentaje de frecuencia en el lenguaje español)
 def decrypt_monoalfabetico(encrypted_message):
+    """
+    Descifra un mensaje cifrado usando un cifrado monoalfabético basado en un mapa de sustitución fijo.
+
+    En este cifrado, cada carácter cifrado se reemplaza por el carácter original utilizando un mapa de sustitución inverso.
+    La función es sensible al caso de las letras. Si un carácter no está en el mapa de sustitución, se mantiene sin cambios.
+
+    Args:
+        encrypted_message (str): El mensaje cifrado que se desea descifrar.
+
+    Returns:
+        str: El mensaje descifrado, donde cada carácter ha sido reemplazado según el mapa de sustitución inverso.
+    """
     # Mapa inverso de sustitución
     reverse_substitution_map = {v: k for k, v in {
         'a': 'o', 'b': 'p', 'c': 'q', 'd': 'r', 'e': 's', 'f': 't', 'g': 'u', 'h': 'v',
@@ -485,16 +488,32 @@ def decrypt_monoalfabetico(encrypted_message):
     for char in encrypted_message:
         if char.lower() in reverse_substitution_map:
             decrypted_char = reverse_substitution_map[char.lower()]
+            # Mantener el caso original del carácter
             if char.isupper():
                 decrypted_message += decrypted_char.upper()
             else:
                 decrypted_message += decrypted_char
         else:
+            # Si el carácter no está en el mapa, se mantiene sin cambios
             decrypted_message += char
 
     return decrypted_message
 
+# Función para la encriptación utilizando el método PlayFair
 def encrypt_playfair(message, key):
+    """
+    Cifra un mensaje utilizando el cifrado Playfair con una clave dada.
+
+    Este método de cifrado trabaja en pares de letras, utilizando una matriz de 5x5 construida a partir de la clave.
+    Si un par de letras es igual o si el mensaje tiene longitud impar, se inserta 'X' como relleno.
+
+    Args:
+        message (str): El mensaje que se desea cifrar.
+        key (str): La clave utilizada para construir la matriz de cifrado.
+
+    Returns:
+        str: El mensaje cifrado.
+    """
     # Convertir mensaje y clave a mayúsculas y limpiar
     message = message.upper().replace("J", "I").replace("Ñ", "N")
     message = ''.join(filter(str.isalpha, message))  # Filtrar solo letras
@@ -581,15 +600,37 @@ def encrypt_playfair(message, key):
 
     return ''.join(encrypted_message)
 
+# Función para la desencriptación utilizando el método PlayFair
 def decrypt_playfair(ciphertext, key):
+    """
+    Esta función descifra un mensaje cifrado utilizando el cifrado Playfair y una clave dada.
+    
+    El cifrado Playfair es un método de encriptación que opera sobre pares de letras. 
+    La clave se utiliza para crear una matriz de 5x5 que contiene todas las letras del alfabeto, 
+    excluyendo la 'J'. Luego, el texto cifrado se divide en pares de letras que se descifran 
+    utilizando reglas específicas según su posición en la matriz. 
+    La función devuelve el mensaje original descifrado.
+    
+    Args:
+    ciphertext: El mensaje cifrado que debe ser descifrado.
+    key: La clave utilizada para construir la matriz de cifrado.
+
+    Returns:
+    El mensaje original descifrado.
+    """
     # Validar y limpiar el texto cifrado
+    # Convertir el texto cifrado a mayúsculas, eliminar espacios y reemplazar 'Ñ' por 'N'
     ciphertext = ciphertext.upper().replace(" ", "").replace("Ñ", "N")
+    # Filtrar solo las letras del texto cifrado
     ciphertext = ''.join(filter(str.isalpha, ciphertext))
 
     # Validar y limpiar la clave
+    # Convertir la clave a mayúsculas, eliminar espacios y reemplazar 'Ñ' por 'N'
     key = key.upper().replace(" ", "").replace("Ñ", "N")
+    # Filtrar solo las letras de la clave
     key = ''.join(filter(str.isalpha, key))
 
+    # Validar que la clave solo contenga letras
     if not key.isalpha():
         raise ValueError("La clave solo debe contener letras y no puede incluir caracteres especiales o espacios.")
 
@@ -597,12 +638,13 @@ def decrypt_playfair(ciphertext, key):
     key = ''.join(sorted(set(key), key=lambda x: key.index(x)))
 
     # Crear la matriz 5x5 usando la clave
-    alphabet = "ABCDEFGHIKLMNOPQRSTUVWXYZ"
+    alphabet = "ABCDEFGHIKLMNOPQRSTUVWXYZ" # Se excluye la 'J' para el alfabeto Playfair
     matrix = []
     for char in key:
         if char in alphabet:
             matrix.append(char)
-            alphabet = alphabet.replace(char, "")
+            alphabet = alphabet.replace(char, "") # Eliminar la letra del alfabeto
+    # Añadir el resto del alfabeto a la matriz
     matrix.extend(alphabet)
     
     # Convertir la lista en una matriz de 5x5
@@ -620,28 +662,45 @@ def decrypt_playfair(ciphertext, key):
     def split_into_pairs(ciphertext):
         return [ciphertext[i:i + 2] for i in range(0, len(ciphertext), 2)]
 
+    # Obtener los pares de letras del texto cifrado
     pairs = split_into_pairs(ciphertext)
 
     # Descifrar cada par de letras
     decrypted_message = []
     for pair in pairs:
+        # Obtener las posiciones de cada letra en la matriz
         row1, col1 = get_position(pair[0])
         row2, col2 = get_position(pair[1])
 
+        # Si las letras están en la misma fila
         if row1 == row2:
             decrypted_message.append(matrix_5x5[row1][(col1 - 1) % 5])
             decrypted_message.append(matrix_5x5[row2][(col2 - 1) % 5])
+        # Si las letras están en la misma columna
         elif col1 == col2:
             decrypted_message.append(matrix_5x5[(row1 - 1) % 5][col1])
             decrypted_message.append(matrix_5x5[(row2 - 1) % 5][col2])
+        # Si las letras forman un rectángulo (distintas fila y columna)
         else:
             decrypted_message.append(matrix_5x5[row1][col2])
             decrypted_message.append(matrix_5x5[row2][col1])
-
+    # Unir las letras descifradas en un solo mensaje
     return ''.join(decrypted_message)
 
-
+# Función para la encriptación utilizando el método Hill
 def encrypt_hill(plaintext, key_matrix):
+    """
+    Esta función cifra un mensaje utilizando el cifrado de Hill, que es un tipo de cifrado de bloques 
+    basado en álgebra lineal. Usa una matriz clave para transformar bloques de letras del texto encriptado.
+
+    Args:
+    plaintext: El mensaje que se desea cifrar.
+    key_matrix: La matriz clave utilizada para cifrar el mensaje, debe ser una matriz cuadrada.
+
+    Returns:
+    El mensaje cifrado como una cadena de texto.
+    """
+
     # Convertir el mensaje a mayúsculas y remover espacios
     plaintext = plaintext.upper().replace(" ", "")
     
@@ -669,20 +728,54 @@ def encrypt_hill(plaintext, key_matrix):
     # Convertir cada bloque en un vector y aplicar la matriz clave
     encrypted_message = []
     for block in blocks:
+        # Convertir el bloque en un vector de números
         block_vector = np.array([char_to_num(char) for char in block]).reshape(-1, 1)
+        # Multiplicar la matriz clave por el vector del bloque y aplicar módulo 26
         encrypted_vector = np.dot(key_matrix, block_vector) % 26
+        # Convertir el vector cifrado de vuelta a letras y añadirlo al mensaje cifrado
         encrypted_message.extend([num_to_char(num) for num in encrypted_vector.flatten()])
-
+    # Unir las letras cifradas en un solo mensaje cifrado
     return ''.join(encrypted_message)
 
+# Función para devolver la matriz inversa modular
 def mod_inverse(matrix, mod):
-    # Utiliza sympy para calcular la inversa modular de una matriz
+    """
+    Esta función calcula la inversa modular de una matriz cuadrada, utilizando el determinante
+    de la matriz y su inversa, todo bajo un módulo específico.
+
+    Parámetros:
+    matrix: La matriz cuadrada a la que se le desea calcular la inversa modular.
+    mod: El módulo bajo el cual se realizará el cálculo.
+
+    Retorna:
+    La inversa modular de la matriz en el módulo especificado.
+    """
+
+    # Calcular el determinante de la matriz y redondearlo al entero más cercano
     det = int(round(np.linalg.det(matrix)))  # Determinante de la matriz
-    det_inv = pow(det, -1, mod)  # Inversa del determinante módulo 26
+    # Calcular la inversa del determinante en el módulo especificado
+    det_inv = pow(det, -1, mod)  # Inversa modular del determinante bajo mod
+    # Calcular la inversa de la matriz, multiplicarla por el determinante y luego por su inversa modular
     matrix_mod_inv = det_inv * np.round(det * np.linalg.inv(matrix)).astype(int) % mod
+    # Retornar la matriz inversa modular
     return matrix_mod_inv
 
+
+"""-------------------------------------------------------------------------------------------------"""
+# Función para la desencriptación utilizando el método Hill
 def decrypt_hill(ciphertext, key_matrix):
+    """
+    Esta función descifra un mensaje utilizando el cifrado de Hill.
+    El proceso inverso al cifrado utiliza la inversa modular de la matriz clave.
+
+    Args:
+    ciphertext: El mensaje cifrado a descifrar (debe estar en letras mayúsculas y sin espacios).
+    key_matrix: La matriz clave utilizada para cifrar el mensaje.
+
+    Returns:
+    El mensaje descifrado en texto plano.
+    """
+
     # Convertir el mensaje cifrado a mayúsculas y remover espacios
     ciphertext = ciphertext.upper().replace(" ", "")
 
@@ -707,25 +800,43 @@ def decrypt_hill(ciphertext, key_matrix):
     # Convertir cada bloque en un vector y aplicar la matriz inversa clave
     decrypted_message = []
     for block in blocks:
+        # Convertir el bloque de texto a un vector numérico
         block_vector = np.array([char_to_num(char) for char in block]).reshape(-1, 1)
+        # Multiplicar el vector por la matriz inversa y aplicar módulo 26
         decrypted_vector = np.dot(key_matrix_inv, block_vector) % 26
+        # Convertir el vector numérico de vuelta a texto
         decrypted_message.extend([num_to_char(num) for num in decrypted_vector.flatten()])
-
+    # Retornar el mensaje descifrado como una cadena de texto
     return ''.join(decrypted_message)
 
 def string_to_matrix(matrix_string):
+    """
+    Esta función convierte una cadena de texto en una matriz cuadrada de números enteros.
+    
+    Parámetros:
+    matrix_string: Una cadena de texto que representa la matriz, donde los elementos están separados por comas.
+
+    Retorna:
+    Una matriz 2D (array de NumPy) de números enteros.
+    """
+
     # Limpiar la cadena eliminando espacios en blanco innecesarios
     matrix_string = matrix_string.strip()
 
     # Convertir la cadena en una lista de enteros, ignorando elementos vacíos
+    # Se utiliza 'filter(None, ...)' para evitar incluir elementos vacíos si hay múltiples comas seguidas
     matrix_list = list(map(int, filter(None, matrix_string.split(','))))
 
     # Calcular el tamaño de la matriz (debe ser cuadrada)
+    # El tamaño es la raíz cuadrada del número total de elementos
     size = int(len(matrix_list) ** 0.5)
+
+    # Verificar si la longitud de la lista es un número cuadrado perfecto
+    # Esto asegura que la matriz sea cuadrada
     if size * size != len(matrix_list):
         raise ValueError("La clave debe formar una matriz cuadrada.")
 
-    # Convertir la lista en una matriz 2D
+    # Convertir la lista de enteros en una matriz 2D de NumPy con forma (size, size)
     matrix = np.array(matrix_list).reshape(size, size)
     return matrix
 
